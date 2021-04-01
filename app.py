@@ -11,6 +11,13 @@ db = TinyDB(path=Path.home() / ".speedtest.db")
 def load_dataframe():
     df = to_dataframe(db)
     df = df.set_index("datetime")
+    df = df.rename(
+        {
+            "download_speed": "Download Speed (Mbps)",
+            "upload_speed": "Upload Speed (Mbps)",
+        },
+        axis=1,
+    )
     return df
 
 
@@ -34,3 +41,11 @@ with col2:
     refresh = st.button("Refresh")
     if refresh:
         plot.line_chart(data=load_dataframe())
+
+
+import pandas as pd
+
+st.header("Error log")
+errors = db.table("errors")
+errors_df = pd.DataFrame(errors.all())
+st.write(errors_df)
