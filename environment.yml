@@ -14,3 +14,4 @@ dependencies:
       - speedtest-cli
       - schedule
       - streamlit
+      - tendo
