@@ -1,0 +1,16 @@
+name: "internet"
+channels:
+  - "conda-forge"
+dependencies:
+  - python=3.9
+  - tinydb>=4.4.0
+  - bokeh
+  - hvplot
+  - pandas
+  - ipykernel
+  - pip
+  - streamz
+  - pip:
+      - speedtest-cli
+      - schedule
+      - streamlit
