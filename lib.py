@@ -37,6 +37,7 @@ def log_data(data, db):
 def record_data():
     db = TinyDB(path=Path.home() / ".speedtest.db")
     data = measure_speed()
+    print(data)
     log_data(data, db)
 
 
