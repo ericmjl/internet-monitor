@@ -1,16 +1,19 @@
 """Streamlit UI."""
+import socket
 from functools import partial
+from threading import Thread
+
+import pandas as pd
 import streamlit as st
+from tendo import singleton
+
 from netspeedmonitor.lib import (
     load_db,
-    to_dataframe,
-    measure_speed,
     log_data,
+    measure_speed,
     record_func,
+    to_dataframe,
 )
-from tendo import singleton
-from threading import Thread
-import socket
 
 me = singleton.SingleInstance()
 
@@ -40,6 +43,9 @@ st.write(
 - FQDN: {socket.getfqdn()}
 """
 )
+
+plot = st.empty()
+plot.line_chart(data=load_dataframe())
 
 
 col1, col2, col3 = st.beta_columns([1, 1, 1])
@@ -71,7 +77,6 @@ with col1:
         )
         if record:
             process = Thread(target=func, daemon=True)
-            # process = mp.Process(target=func, daemon=True)
             process.start()
             running_processes.append(process)
             status.success(f"Recorder running in background")
@@ -92,16 +97,12 @@ with col2:
             st.write(data)
             log_data(data, db)
 
-plot = st.empty()
-plot.line_chart(data=load_dataframe())
-
 with col3:
     st.write("Refresh the chart.")
     refresh = st.button("Refresh")
     if refresh:
         plot.line_chart(data=load_dataframe())
 
-import pandas as pd
 
 st.header("Error log")
 errors = db.table("errors")

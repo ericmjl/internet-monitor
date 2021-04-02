@@ -1,13 +1,15 @@
-from pathlib import Path
-
-from tinydb import TinyDB
-import speedtest
+import threading
+import time
 from datetime import datetime
-import pandas as pd
+from pathlib import Path
 from threading import get_ident
+
+import pandas as pd
 import schedule
-from tendo import singleton
+import speedtest
 from loguru import logger
+from tendo import singleton
+from tinydb import TinyDB
 from tinyrecord import transaction
 
 
@@ -65,3 +67,28 @@ def record_func(min_interval: int, max_interval: int):
     schedule.every(min_interval).to(max_interval).minutes.do(record_data)
     while True:
         schedule.run_pending()
+
+
+def run_continuously(interval=1):
+    """Continuously run, while executing pending jobs at each
+    elapsed time interval.
+    @return cease_continuous_run: threading. Event which can
+    be set to cease continuous run. Please note that it is
+    *intended behavior that run_continuously() does not run
+    missed jobs*. For example, if you've registered a job that
+    should run every minute and you set a continuous run
+    interval of one hour then your job won't be run 60 times
+    at each interval but only once.
+    """
+    cease_continuous_run = threading.Event()
+
+    class ScheduleThread(threading.Thread):
+        @classmethod
+        def run(cls):
+            while not cease_continuous_run.is_set():
+                schedule.run_pending()
+                time.sleep(interval)
+
+    continuous_thread = ScheduleThread(daemon=True)
+    continuous_thread.start()
+    return continuous_thread, cease_continuous_run
