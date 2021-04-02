@@ -1,7 +1,7 @@
 import setuptools
 
 setuptools.setup(
-    name="netmonitor",
+    name="netspeedmonitor",
     version="1.0.0",
     description="",
     long_description="",
@@ -9,7 +9,7 @@ setuptools.setup(
     author="",
     author_email="",
     license="",
-    packages=["netmonitor"],
+    packages=["netspeedmonitor"],
     install_requires=[
         "streamlit",
         "click",
@@ -19,7 +19,8 @@ setuptools.setup(
         "tinydb",
         "loguru",
         "schedule",
+        "tinyrecord",
     ],
     zip_safe=False,  # install source files not egg
-    entry_points={"console_scripts": ["netmonitor = netmonitor.cli:main"]},
+    entry_points={"console_scripts": ["netspeedmonitor = netspeedmonitor.cli:main"]},
 )

@@ -1,6 +1,13 @@
+"""Streamlit UI."""
 from functools import partial
 import streamlit as st
-from netmonitor.lib import load_db, to_dataframe, measure_speed, log_data, record_func
+from netspeedmonitor.lib import (
+    load_db,
+    to_dataframe,
+    measure_speed,
+    log_data,
+    record_func,
+)
 from tendo import singleton
 from threading import Thread
 import socket

@@ -16,3 +16,4 @@ dependencies:
       - streamlit
       - tendo
       - loguru
+      - tinyrecord

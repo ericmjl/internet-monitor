@@ -8,6 +8,7 @@ from threading import get_ident
 import schedule
 from tendo import singleton
 from loguru import logger
+from tinyrecord import transaction
 
 
 def load_db():
@@ -35,10 +36,9 @@ def measure_speed():
 
 def log_data(data, db):
     if "error_message" in data.keys():
-        errors = db.table("errors")
-        errors.insert(data)
-    else:
-        db.insert(data)
+        db = db.table("errors")
+    with transaction(db) as tr:
+        tr.insert(data)
     return db
 
 
@@ -50,6 +50,10 @@ def record_data():
 
 def to_dataframe(db):
     df = pd.DataFrame(db.all()).dropna().drop_duplicates()
+    if len(db.all()) == 0:
+        record_data()
+        db = load_db()
+        df = pd.DataFrame(db.all())
     if len(df) > 0:
         df["datetime"] = df["datetime"].astype("datetime64[ns]")
     return df
