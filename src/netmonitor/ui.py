@@ -1,12 +1,8 @@
 from functools import partial
-from loguru import logger
 import streamlit as st
-from tinydb import TinyDB
-from pathlib import Path
-from lib import load_db, to_dataframe, measure_speed, log_data, record_func
+from netmonitor.lib import load_db, to_dataframe, measure_speed, log_data, record_func
 from tendo import singleton
-from threading import Thread, get_ident
-import multiprocessing as mp
+from threading import Thread
 import socket
 
 me = singleton.SingleInstance()
@@ -32,7 +28,6 @@ st.header("Internet Speed Monitor")
 
 
 hostname = socket.gethostname()
-# ip_address = socket.gethostbyname(hostname)
 st.write(
     f"""
 - Host name: {hostname}
@@ -40,12 +35,8 @@ st.write(
 """
 )
 
-plot = st.empty()
-plot.line_chart(data=load_dataframe())
 
 col1, col2, col3 = st.beta_columns([1, 1, 1])
-
-
 # Allow output mutation is necessary
 # so that we don't overwrite running_threads
 # each time an interaction happens on the UI.
@@ -95,12 +86,14 @@ with col2:
             st.write(data)
             log_data(data, db)
 
+plot = st.empty()
+plot.line_chart(data=load_dataframe())
+
 with col3:
     st.write("Refresh the chart.")
     refresh = st.button("Refresh")
     if refresh:
         plot.line_chart(data=load_dataframe())
-
 
 import pandas as pd
 

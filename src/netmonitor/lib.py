@@ -6,10 +6,8 @@ from datetime import datetime
 import pandas as pd
 from threading import get_ident
 import schedule
-import time
 from tendo import singleton
 from loguru import logger
-import time
 
 
 def load_db():
@@ -52,7 +50,8 @@ def record_data():
 
 def to_dataframe(db):
     df = pd.DataFrame(db.all()).dropna().drop_duplicates()
-    df["datetime"] = df["datetime"].astype("datetime64[ns]")
+    if len(df) > 0:
+        df["datetime"] = df["datetime"].astype("datetime64[ns]")
     return df
 
 
