@@ -6,6 +6,8 @@ from pathlib import Path
 from lib import load_db, to_dataframe, measure_speed, log_data, record_func
 from tendo import singleton
 from threading import Thread, get_ident
+import multiprocessing as mp
+import socket
 
 me = singleton.SingleInstance()
 
@@ -28,6 +30,16 @@ def load_dataframe():
 
 st.header("Internet Speed Monitor")
 
+
+hostname = socket.gethostname()
+# ip_address = socket.gethostbyname(hostname)
+st.write(
+    f"""
+- Host name: {hostname}
+- FQDN: {socket.getfqdn()}
+"""
+)
+
 plot = st.empty()
 plot.line_chart(data=load_dataframe())
 
@@ -38,15 +50,15 @@ col1, col2, col3 = st.beta_columns([1, 1, 1])
 # so that we don't overwrite running_threads
 # each time an interaction happens on the UI.
 @st.cache(allow_output_mutation=True)
-def init_running_threads():
+def init_running_processes():
     return []
 
 
-running_threads = init_running_threads()
+running_processes = init_running_processes()
 with col1:
     st.write("Background recording")
     status = st.empty()
-    if len(running_threads) == 0:
+    if len(running_processes) == 0:
         min_interval_placeholder = st.empty()
         min_interval = min_interval_placeholder.number_input(
             "Minimum Interval (minutes)", min_value=1, max_value=60
@@ -61,16 +73,17 @@ with col1:
             record_func, min_interval=min_interval, max_interval=max_interval
         )
         if record:
-            thread = Thread(target=func, daemon=True)
-            thread.start()
-            running_threads.append(thread)
-            status.success("Recorder running in background")
+            process = Thread(target=func, daemon=True)
+            # process = mp.Process(target=func, daemon=True)
+            process.start()
+            running_processes.append(process)
+            status.success(f"Recorder running in background")
             recorder_placeholder.empty()
             min_interval_placeholder.empty()
             max_interval_placeholder.empty()
 
     else:
-        status.success("Recorder running in background")
+        status.success(f"Recorder running in background")
 
 
 with col2:

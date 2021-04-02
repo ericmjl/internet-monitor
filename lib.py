@@ -4,12 +4,20 @@ from tinydb import TinyDB
 import speedtest
 from datetime import datetime
 import pandas as pd
+from threading import get_ident
+import schedule
+import time
+from tendo import singleton
+from loguru import logger
+import time
 
 
-db = TinyDB(path=Path.home() / ".speedtest.db")
+def load_db():
+    return TinyDB(path=Path.home() / ".speedtest.json")
 
 
 def measure_speed():
+    logger.info("Measuring internet speed!")
     try:
         st = speedtest.Speedtest()
         down_speed = st.download() / 1024 ** 2
@@ -19,9 +27,11 @@ def measure_speed():
             "download_speed": int(down_speed),
             "datetime": str(datetime.now()),
         }
+        logger.info(data)
         return data
     except Exception as e:
         data = {"error_message": str(e), "datetime": str(datetime.now())}
+        logger.info(data)
         return data
 
 
@@ -35,9 +45,8 @@ def log_data(data, db):
 
 
 def record_data():
-    db = TinyDB(path=Path.home() / ".speedtest.db")
+    db = load_db()
     data = measure_speed()
-    print(data)
     log_data(data, db)
 
 
@@ -47,9 +56,9 @@ def to_dataframe(db):
     return df
 
 
-def plot_data(df):
-    df["datetime"] = df["datetime"].astype("datetime64[ns]")
-    df["upload_speed"] = df["upload_speed"]
-    df["download_speed"] = df["download_speed"]
-    df = df.set_index("datetime")
-    return df.plot()
+def record_func(min_interval: int, max_interval: int):
+    me = singleton.SingleInstance()
+    logger.info(f"Thread ID: {get_ident()}")
+    schedule.every(min_interval).to(max_interval).minutes.do(record_data)
+    while True:
+        schedule.run_pending()
