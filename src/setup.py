@@ -2,13 +2,13 @@ import setuptools
 
 setuptools.setup(
     name="netspeedmonitor",
-    version="1.0.0",
-    description="",
+    version="0.1.0",
+    description="A utility for recording your internet speed.",
     long_description="",
-    url="",
-    author="",
-    author_email="",
-    license="",
+    url="https://github.com/ericmjl/internet-monitor",
+    author="Eric J. Ma",
+    author_email="ericmajinglong@gmail.com",
+    license="MIT",
     packages=["netspeedmonitor"],
     install_requires=[
         "streamlit",
