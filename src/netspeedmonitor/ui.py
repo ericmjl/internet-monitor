@@ -20,7 +20,6 @@ db = load_db()
 
 def load_dataframe():
     df = to_dataframe(db)
-    df = df.set_index("datetime")
     df = df.rename(
         {
             "download_speed": "Download Speed (Mbps)",

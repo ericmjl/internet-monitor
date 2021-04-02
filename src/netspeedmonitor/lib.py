@@ -56,7 +56,7 @@ def to_dataframe(db):
         df = pd.DataFrame(db.all())
     if len(df) > 0:
         df["datetime"] = df["datetime"].astype("datetime64[ns]")
-    return df
+    return df.set_index("datetime")
 
 
 def record_func(min_interval: int, max_interval: int):
