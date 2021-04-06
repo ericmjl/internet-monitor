@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 from tendo import singleton
 
-from netspeedmonitor.lib import (
+from netspeedmonitor.speedtest import (
     load_db,
     log_data,
     measure_speed,
@@ -15,7 +15,7 @@ from netspeedmonitor.lib import (
     to_dataframe,
 )
 
-me = singleton.SingleInstance()
+me = singleton.SingleInstance(lockfile="/tmp/netspeedmonitor_ui.lock")
 
 
 db = load_db()
