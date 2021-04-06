@@ -1,7 +1,7 @@
+"""Code for using speedtest.net to programmatically measure internet speed."""
 import threading
 import time
 from datetime import datetime
-from pathlib import Path
 from threading import get_ident
 
 import pandas as pd
@@ -9,16 +9,14 @@ import schedule
 import speedtest
 from loguru import logger
 from tendo import singleton
-from tinydb import TinyDB
 from tinyrecord import transaction
+from netspeedmonitor.database import load_db, log_data
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 
-def load_db():
-    return TinyDB(path=Path.home() / ".speedtest.json")
-
-
-def measure_speed():
-    logger.info("Measuring internet speed!")
+def record_speed():
+    """Return internet speed in megabytes per second."""
     try:
         st = speedtest.Speedtest()
         down_speed = st.download() / 1024 ** 2
@@ -29,31 +27,31 @@ def measure_speed():
             "datetime": str(datetime.now()),
         }
         logger.info(data)
+        log_data(data, "speed")
         return data
     except Exception as e:
         data = {"error_message": str(e), "datetime": str(datetime.now())}
         logger.info(data)
+        log_data(data, "speed_errors")
         return data
 
 
-def log_data(data, db):
-    if "error_message" in data.keys():
-        db = db.table("errors")
-    with transaction(db) as tr:
-        tr.insert(data)
-    return db
+def measure_netspeed():
+    """Wrapper function for consistency."""
+    logger.info("Measuring internet speed!")
+    result = record_speed()
+    return result
 
 
-def record_data():
+def log_speed():
     db = load_db()
-    data = measure_speed()
-    log_data(data, db)
+    speed = measure_netspeed()
+    log_data(speed, table="speed", db=db)
 
 
 def to_dataframe(db):
     df = pd.DataFrame(db.all()).dropna().drop_duplicates()
     if len(db.all()) == 0:
-        record_data()
         db = load_db()
         df = pd.DataFrame(db.all())
     if len(df) > 0:
@@ -62,9 +60,9 @@ def to_dataframe(db):
 
 
 def record_func(min_interval: int, max_interval: int):
-    me = singleton.SingleInstance()
+    me = singleton.SingleInstance(lockfile="/tmp/netspeedmonitor_speedtest.lock")
     logger.info(f"Thread ID: {get_ident()}")
-    schedule.every(min_interval).to(max_interval).minutes.do(record_data)
+    schedule.every(min_interval).to(max_interval).minutes.do(log_speed)
     while True:
         schedule.run_pending()
 
