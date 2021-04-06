@@ -25,7 +25,6 @@ setuptools.setup(
         "tendo",
         "pandas",
         "speedtest-cli",
-        "tinydb",
         "loguru",
         "schedule",
         "tinyrecord",
