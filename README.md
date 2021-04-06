@@ -36,12 +36,29 @@ To view the monitor UI, go to your [localhost in the browser on port 8501
 
 ## How this app works
 
-Underneath the hood, we use the [`speedtest-cli`][speedtest] package
+There are two ways to measure internet speed.
+Firstly, we can measure raw upload and download speed
+by sending or receiving packets from a server.
+It gives us a direct, quantitative and accurate measure
+of how fast our internet speed is,
+but it consumes a non-trivial amount of bandwidth.
+Secondly, we can measure latency of a ping request from one host to another host.
+This consumes trivial amounts of bandwidth, but is less accurate.
+We combine the two together inside a single command line tool
+that continuously monitors your internet speed using both methods.
+
+To do direct internet speed measurement,
+underneath the hood, we use the [`speedtest-cli`][speedtest] package
 to send packets to Ookla's speed testing servers.
+We also use the `tcp_latency` package to ping sentinel servers
+and machines on the local network.
+As a matter of sane defaults, pinging is done every 2-3 minutes,
+while direct measurements are done every 15 minutes.
+
 The results are then logged to a [TinyDB][tinydb].
 To ensure atomic transactions, we use [`tinyrecord`][tinyrecord].
 Only a single instance of the app can be run per machine,
-because we use [`tendo`'s] `singleinstance` module
+because we use [`tendo`'s][tendo] `singleinstance` module
 to ensure only a single instance runs on one machine.
 (Running multiple instances may clog up your internet
 especially if you are pinging Ookla's speed testing servers frequently,
@@ -59,6 +76,7 @@ it was super fast and easy to build, kudos to the team!
 [streamlit]: https://docs.streamlit.io/en/stable/
 [schedule]: https://schedule.readthedocs.io/en/stable/
 [loguru]: https://github.com/Delgan/loguru
+[tendo]: https://github.com/pycontribs/tendo
 
 ## Precautions to take
 
@@ -86,6 +104,46 @@ from tinydb import TinyDB
 db = TinyDB("~/.speedtest.json")
 df = pd.DataFrame(db.all())
 ```
+
+## Database Schema
+
+Inside the TinyDB on disk, there are three tables. Here are their schemas.
+
+### `speed`
+
+This records the internet speed as measured by the `speedtest-cli` package.
+Per record, the fields are:
+
+1. `upload_speed`: Upload speed.
+2. `download_speed`: Download speed.
+3. `datetime`: Date and time of measurement.
+
+### `speed_errors`
+
+This records any errors that `speedtest-cli` may throw up during testing. Per record, the fields are:
+
+1. `error_message`: The error message returned.
+2. `datetime`: Date and time of measurement.
+
+### `latency`
+
+This records the internet latency as measured by the `tcp_latency` package. Per record, the fields are:
+
+1. `host`: The IP address or hostname that was pinged.
+2. `latency`: The latency recorded.
+3. `datetime`: Date and time of measurement.
+4. `kind`: Either `local` or `sentinel`.
+
+Sentinel sites are:
+
+- `google.com`
+- `bing.com`
+- `yahoo.com`
+- `bbc.co.uk`
+
+These are sites we expect to always be up and running.
+
+Local sites are anything on your subnet.
 
 ## Contributing and supporting the project
 
