@@ -5,9 +5,8 @@ from typing import Callable
 
 import schedule
 
-from netspeedmonitor.database import log_data
-from netspeedmonitor.latency import measure_local, measure_sentinels, record_latency
-from netspeedmonitor.speedtest import measure_netspeed, record_speed
+from netspeedmonitor.latency import measure_local, measure_sentinels
+from netspeedmonitor.speedtest import measure_netspeed
 
 
 def schedule_measure_netspeed(interval: int):

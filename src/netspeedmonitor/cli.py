@@ -1,15 +1,18 @@
-import click
-import streamlit.cli
+"""Netspeedmonitor CLI."""
 import os
-from tendo import singleton
 from pathlib import Path
+
+import click
+import pandas as pd
+import streamlit.cli
+from setproctitle import setproctitle
+from tabulate import tabulate
+from tendo import singleton
+
 from netspeedmonitor.daemon import fire_and_forget
 from netspeedmonitor.database import export, load_db, table_to_df
-from tabulate import tabulate
-import pandas as pd
 from netspeedmonitor.latency import measure_local, measure_sentinels
 from netspeedmonitor.speedtest import measure_netspeed
-from setproctitle import setproctitle
 
 
 @click.group()

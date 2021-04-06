@@ -2,16 +2,15 @@
 import ipaddress
 from datetime import datetime
 from ipaddress import ip_address
-from math import e
 from typing import Dict, List
 
 import ifaddr
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, parallel_backend
 from loguru import logger
+from pydantic import validate_arguments
 from tcp_latency import measure_latency
 
-from netspeedmonitor.database import log_data
-from joblib import parallel_backend
+from netspeedmonitor.database import Latency, log_data
 
 sentinel_sites = [
     "google.com",
@@ -21,6 +20,7 @@ sentinel_sites = [
 ]
 
 
+@validate_arguments
 def record_latency(host: str, kind: str, runs: int = 10) -> Dict:
     """Record average latency of a host."""
     logger.info(f"Measuring site {host} latency")
@@ -31,12 +31,12 @@ def record_latency(host: str, kind: str, runs: int = 10) -> Dict:
             latency = sum(latencies) / runs
     except Exception:
         pass
-    data = dict(host=host, latency=latency, datetime=str(datetime.now()), kind=kind)
+    data = Latency(host=host, latency=latency, datetime=datetime.now(), kind=kind)
     logger.info(data)
-    if data["kind"] == "local" and data["latency"] is not None:
-        log_data(data, "latency")
-    elif data["kind"] == "sentinel":
-        log_data(data, "latency")
+    if data.kind == "local" and data.latency is not None:
+        log_data(data.dict(), "latency")
+    elif data.kind == "sentinel":
+        log_data(data.dict(), "latency")
     return data
 
 
