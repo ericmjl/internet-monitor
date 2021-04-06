@@ -1,10 +1,13 @@
 """Background process where we run once every however often."""
+import threading
+import time
 from typing import Callable
+
 import schedule
 
 from netspeedmonitor.database import log_data
 from netspeedmonitor.latency import measure_local, measure_sentinels, record_latency
-from netspeedmonitor.speedtest import record_speed, measure_netspeed
+from netspeedmonitor.speedtest import measure_netspeed, record_speed
 
 
 def schedule_measure_netspeed(interval: int):
@@ -23,3 +26,37 @@ def add_to_schedule(func: Callable, interval: int):
     min_interval = max(interval - 5, 1)
     max_interval = interval + 1
     schedule.every(min_interval).to(max_interval).minutes.do(func)
+
+
+def fire_and_forget(netspeed_interval, sentinel_interval, local_interval):
+    schedule_measure_netspeed(netspeed_interval)
+    schedule_measure_sentinels(sentinel_interval)
+    schedule_measure_local(local_interval)
+
+    while True:
+        schedule.run_pending()
+
+
+def run_continuously(interval=1):
+    """Continuously run, while executing pending jobs at each
+    elapsed time interval.
+    @return cease_continuous_run: threading. Event which can
+    be set to cease continuous run. Please note that it is
+    *intended behavior that run_continuously() does not run
+    missed jobs*. For example, if you've registered a job that
+    should run every minute and you set a continuous run
+    interval of one hour then your job won't be run 60 times
+    at each interval but only once.
+    """
+    cease_continuous_run = threading.Event()
+
+    class ScheduleThread(threading.Thread):
+        @classmethod
+        def run(cls):
+            while not cease_continuous_run.is_set():
+                schedule.run_pending()
+                time.sleep(interval)
+
+    continuous_thread = ScheduleThread(daemon=True)
+    continuous_thread.start()
+    return cease_continuous_run
