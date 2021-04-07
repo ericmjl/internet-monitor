@@ -1,6 +1,7 @@
 import os
 from multiprocessing import Process
 import psutil
+from functools import partial
 
 
 def detachify(func):

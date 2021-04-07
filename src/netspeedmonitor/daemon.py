@@ -29,7 +29,6 @@ def add_to_schedule(func: Callable, interval: int):
     schedule.every(min_interval).to(max_interval).minutes.do(func)
 
 
-@detachify
 def fire_and_forget(netspeed_interval, sentinel_interval, local_interval):
     """Run all measurements and forget about them."""
     setproctitle("netspeedmonitord")
