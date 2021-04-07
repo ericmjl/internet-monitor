@@ -7,7 +7,7 @@ from tendo import singleton
 
 from netspeedmonitor.database import table_to_df
 from netspeedmonitor.latency import measure_local, measure_sentinels
-from netspeedmonitor.speedtest import load_db, measure_netspeed
+from netspeedmonitor.speedtest import measure_netspeed
 
 
 def despine(ax):
@@ -17,7 +17,6 @@ def despine(ax):
 
 me = singleton.SingleInstance(lockfile="/tmp/netspeedmonitor_ui.lock")
 
-db = load_db()
 
 st.header("Internet Speed Monitor")
 
