@@ -4,9 +4,11 @@ import time
 from typing import Callable
 
 import schedule
+from setproctitle import setproctitle
 
 from netspeedmonitor.latency import measure_local, measure_sentinels
 from netspeedmonitor.speedtest import measure_netspeed
+from netspeedmonitor.utils import detachify
 
 
 def schedule_measure_netspeed(interval: int):
@@ -27,7 +29,10 @@ def add_to_schedule(func: Callable, interval: int):
     schedule.every(min_interval).to(max_interval).minutes.do(func)
 
 
+@detachify
 def fire_and_forget(netspeed_interval, sentinel_interval, local_interval):
+    """Run all measurements and forget about them."""
+    setproctitle("netspeedmonitord")
     schedule_measure_netspeed(netspeed_interval)
     schedule_measure_sentinels(sentinel_interval)
     schedule_measure_local(local_interval)

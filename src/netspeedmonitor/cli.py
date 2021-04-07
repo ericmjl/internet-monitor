@@ -3,9 +3,7 @@ import os
 from pathlib import Path
 
 import click
-import pandas as pd
 import streamlit.cli
-from setproctitle import setproctitle
 from tabulate import tabulate
 from tendo import singleton
 
@@ -67,7 +65,6 @@ def export_data():
 @click.option("--local", default=1, help="Time interval between local host pings.")
 def daemon(netspeed, sentinel, local):
     """Run internet speed test monitor in the background."""
-    setproctitle("netspeedmonitord")
     fire_and_forget(
         netspeed_interval=netspeed,
         sentinel_interval=sentinel,
